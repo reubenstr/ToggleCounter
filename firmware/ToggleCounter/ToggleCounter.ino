@@ -87,10 +87,9 @@ void setup()
   digitalWrite(PIN_TOGGLE_6, HIGH);
   digitalWrite(PIN_TOGGLE_7, HIGH);
 
-  StartUpSequence();
-
   display.setBrightness(0xff);
 
+  StartUpSequence();
 }
 
 void loop()
@@ -126,14 +125,18 @@ void loop()
     timeOutMillis = millis();
   }
 
-  // Display number on TM1637 display
+  DisplayNumber(number);
+}
+
+void DisplayNumber(byte number)
+{
   display.showNumberDec(number, false);
 }
 
 byte DecodeToggleSwitchesIntoNumber()
 {
   byte number;
-  
+
   // Map toggle switches to bits of the byte to display.
   bitWrite(number, 0, analogRead(PIN_TOGGLE_0) > 100);
   bitWrite(number, 1, digitalRead(PIN_TOGGLE_1));
@@ -152,7 +155,7 @@ void StartUpSequence()
 {
   byte startupNumber = DecodeToggleSwitchesIntoNumber();
 
-  for (int num = 0; num < 256; num++)
+  for (int number = 0; number < 256; number++)
   {
     // Break startup sequence upon user input.
     if (startupNumber != DecodeToggleSwitchesIntoNumber())
@@ -160,15 +163,29 @@ void StartUpSequence()
       return;
     }
 
-    digitalWrite(PIN_LED_0, bitRead(num, 0));
-    digitalWrite(PIN_LED_1, bitRead(num, 1));
-    digitalWrite(PIN_LED_2, bitRead(num, 2));
-    digitalWrite(PIN_LED_3, bitRead(num, 3));
-    digitalWrite(PIN_LED_4, bitRead(num, 4));
-    digitalWrite(PIN_LED_5, bitRead(num, 5));
-    digitalWrite(PIN_LED_6, bitRead(num, 6));
-    digitalWrite(PIN_LED_7, bitRead(num, 7));
+    digitalWrite(PIN_LED_0, bitRead(number, 0));
+    digitalWrite(PIN_LED_1, bitRead(number, 1));
+    digitalWrite(PIN_LED_2, bitRead(number, 2));
+    digitalWrite(PIN_LED_3, bitRead(number, 3));
+    digitalWrite(PIN_LED_4, bitRead(number, 4));
+    digitalWrite(PIN_LED_5, bitRead(number, 5));
+    digitalWrite(PIN_LED_6, bitRead(number, 6));
+    digitalWrite(PIN_LED_7, bitRead(number, 7));
+
+    DisplayNumber(number);
 
     delay(50);
   }
+
+  // Pause for effect.
+  unsigned long curMillis = millis();
+  while ((curMillis + 2000) > millis())
+  {    
+    if (startupNumber != DecodeToggleSwitchesIntoNumber())
+    {
+      return;
+    }
+  }
+
+
 }
