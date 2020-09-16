@@ -8,19 +8,19 @@
 
    MCU: Arduino Nano with Atmega168p
 
-   After 3 minutes of no activity chirp.
+   After 3 minutes of no activity  begin audible chirp.
+
+   Due to pin limitations, toggle0 uses an analog pin with
+   a pull-up resitor to detect the state via ADC.
 
    Created: 09-11-2020
    Reuben Strangelove
 
    Device uses 2x AA batteries.
    Consumes 107ma all LEDs on, 28ma all LEDs off.
-
 */
 
-
 #include <TM1637Display.h> // https://github.com/avishorp/TM1637
-
 
 #define PIN_TM1637_CLK 11
 #define PIN_TM1637_DIO 10
@@ -47,13 +47,13 @@
 
 TM1637Display display(PIN_TM1637_CLK, PIN_TM1637_DIO);
 
+const unsigned long timeOutDelay = 180000;  // milliseconds
+const unsigned long chirpDelay = 20000;      // milliseconds
+
 byte number;
 byte oldNumber;
 unsigned long timeOutMillis;
 unsigned long chirpMillis;
-
-const unsigned long timeOutDelay = 180000;  // milliseconds
-const unsigned long chirpDelay = 20000;      // milliseconds
 
 void setup()
 {
@@ -125,11 +125,6 @@ void loop()
     timeOutMillis = millis();
   }
 
-  DisplayNumber(number);
-}
-
-void DisplayNumber(byte number)
-{
   display.showNumberDec(number, false);
 }
 
@@ -150,7 +145,8 @@ byte DecodeToggleSwitchesIntoNumber()
   return number;
 }
 
-
+// Automatically count up when powered on.
+// Break upon user input.
 void StartUpSequence()
 {
   byte startupNumber = DecodeToggleSwitchesIntoNumber();
@@ -172,20 +168,18 @@ void StartUpSequence()
     digitalWrite(PIN_LED_6, bitRead(number, 6));
     digitalWrite(PIN_LED_7, bitRead(number, 7));
 
-    DisplayNumber(number);
+    display.showNumberDec(number, false);
 
     delay(50);
   }
 
-  // Pause for effect.
+  // Pause at end of count sequence for effect.
   unsigned long curMillis = millis();
   while ((curMillis + 2000) > millis())
-  {    
+  {
     if (startupNumber != DecodeToggleSwitchesIntoNumber())
     {
       return;
     }
   }
-
-
 }
